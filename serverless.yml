@@ -1,0 +1,51 @@
+service: lambda-redis
+app: lambda-redis
+frameworkVersion: ">=1.0.0 <2.0.0"
+stage: ${opt:stage, 'dev'}
+
+provider:
+  name: aws
+  runtime: python3.7
+  region: us-east-1
+  stackName: lambda-redis
+  deploymentBucket:
+    name: digital-serverless-bucket-pan
+  environment:
+    redisHost: ${file(./config.${self:provider.stage}.json):redisHost}
+    redisPort: ${file(./config.${self:provider.stage}.json):redisPort}
+
+resources:
+  Resources:
+    ## Specifying the S3 Bucket
+    AttachmentsBucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        AccessControl: Private
+        BucketName: <NOME_DO_BUCKET>
+
+Outputs:
+  AttachmentsBucketName:
+    Value:
+      Ref: AttachmentsBucket
+
+plugins:
+  - serverless-plugin-existing-s3-cn
+  - serverless-python-requirements
+functions:
+  waiting:
+    handler: handler.tap
+    role: arn:aws:iam::<account>:role/<SUA_ROLE>
+    events:
+      - s3:
+          bucket: <NOME_DO_BUCKET>
+          event: s3:ObjectCreated:*
+          rules:
+            - suffix: .csv
+          existing: true
+    vpc:
+      securityGroupIds:
+        - <SG_IG>
+      subnetIds:
+        - <SB_ID>
+        - <SB_ID>
+

@@ -1,0 +1,4 @@
+{
+    "redisHost": "<URL_REDIS>",
+    "redisPort": "6379"
+}
